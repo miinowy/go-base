@@ -1,0 +1,5 @@
+cmd/
+vendor/
+configs/
+go.mod
+go.sum
