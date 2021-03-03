@@ -23,8 +23,14 @@ var (
 
 	// ErrNotFound indicates record was not found in db
 	ErrNotFound = fmt.Errorf("kv: not found")
-	// ErrForbidden indicates can't access db
+	// ErrForbidden indicates no access
 	ErrForbidden = fmt.Errorf("kv: forbidden")
+	// ErrTransfer indicates can't link to db
+	ErrConnection = fmt.Errorf("kv: connect error")
+	// ErrEncoding indicates an error occured while in/decoding
+	ErrEncoding = fmt.Errorf("kv: encoding error")
+	// ErrUnknown indicates an unknown error
+	ErrUnknown = fmt.Errorf("kv: unknown error")
 )
 
 // Initialize default leveldb

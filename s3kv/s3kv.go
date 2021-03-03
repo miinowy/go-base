@@ -11,25 +11,13 @@ import (
 	"github.com/golang/snappy"
 
 	"github.com/miinowy/go-base/client"
+	"github.com/miinowy/go-base/kv"
 )
 
 var (
 	// Default context
 	s3   *Context
 	once sync.Once
-
-	// Errors
-
-	// ErrNetwork indicates a network error
-	ErrNetwork = fmt.Errorf("s3kv: network error")
-	// ErrNotFound indicates http status code is 404
-	ErrNotFound = fmt.Errorf("s3kv: not found")
-	// ErrForbidden indicates http status code is 403
-	ErrForbidden = fmt.Errorf("s3kv: forbidden")
-	// ErrStatusCode indicates got an unexcect status code
-	ErrStatusCode = fmt.Errorf("s3kv: unexpect status code")
-	// ErrEncoding indicates an error occured while decoding
-	ErrEncoding = fmt.Errorf("s3kv: faild to decode content")
 )
 
 // Initialize default context
@@ -71,7 +59,7 @@ func (c *Context) Has(key []byte) (bool, error) {
 	switch err {
 	case nil:
 		return true, nil
-	case ErrNotFound:
+	case kv.ErrNotFound:
 		return false, nil
 	default:
 		return false, err
@@ -94,7 +82,7 @@ func (c *Context) Get(key []byte) ([]byte, error) {
 	}
 	decode, err := snappy.Decode(nil, resp.Body())
 	if err != nil {
-		err = ErrEncoding
+		err = kv.ErrEncoding
 		decode = resp.Body()
 	}
 	return decode, err
@@ -150,52 +138,52 @@ func (c *Context) List(params map[string]string) (*ListResult, error) {
 func assertStatus(code int) func(*resty.Response, error) (*resty.Response, error) {
 	return func(resp *resty.Response, err error) (*resty.Response, error) {
 		if err != nil {
-			return resp, ErrNetwork
+			return resp, kv.ErrConnection
 		}
 		switch resp.StatusCode() {
 		case code:
 			return resp, nil
 		case http.StatusForbidden:
-			return resp, ErrForbidden
+			return resp, kv.ErrForbidden
 		case http.StatusNotFound:
-			return resp, ErrNotFound
+			return resp, kv.ErrNotFound
 		default:
-			return resp, ErrStatusCode
+			return resp, kv.ErrUnknown
 		}
 	}
 }
 
 // ListResult indicates xml of s3 list result
 type ListResult struct {
-	Name           string         `xml:"Name"`
-	Marker         string         `xml:"Marker"`
-	Prefix         string         `xml:"Prefix"`
-	MaxKeys        string         `xml:"MaxKeys"`
-	Delimiter      string         `xml:"Delimiter"`
-	NextMarker     string         `xml:"NextMarker"`
-	IsTruncated    string         `xml:"IsTruncated"`
-	Contents       []Content      `xml:"Contents"`
-	CommonPrefixes CommonPrefixes `xml:"CommonPrefixes"`
+	Name           string             `xml:"Name"`
+	Marker         string             `xml:"Marker"`
+	Prefix         string             `xml:"Prefix"`
+	MaxKeys        string             `xml:"MaxKeys"`
+	Delimiter      string             `xml:"Delimiter"`
+	NextMarker     string             `xml:"NextMarker"`
+	IsTruncated    string             `xml:"IsTruncated"`
+	Contents       []ListContent      `xml:"Contents"`
+	CommonPrefixes ListCommonPrefixes `xml:"CommonPrefixes"`
 }
 
-// CommonPrefixes is container of ListResult
-type CommonPrefixes struct {
+// ListCommonPrefixes is container of ListResult
+type ListCommonPrefixes struct {
 	Prefix []string `xml:"Prefix"`
 }
 
-// Content is container of ListResult
-type Content struct {
-	Key          string `xml:"Key"`
-	ETag         string `xml:"ETag"`
-	Size         string `xml:"Size"`
-	Type         string `xml:"Type"`
-	LastModified string `xml:"LastModified"`
-	StorageClass string `xml:"StorageClass"`
-	Owner        Owner  `xml:"Owner"`
+// ListContent is container of ListResult
+type ListContent struct {
+	Key          string           `xml:"Key"`
+	ETag         string           `xml:"ETag"`
+	Size         string           `xml:"Size"`
+	Type         string           `xml:"Type"`
+	LastModified string           `xml:"LastModified"`
+	StorageClass string           `xml:"StorageClass"`
+	Owner        ListContentOwner `xml:"Owner"`
 }
 
-// Owner is container of Content
-type Owner struct {
+// ListContentOwner is container of ListContent
+type ListContentOwner struct {
 	ID          string `xml:"ID"`
 	DisplayName string `xml:"DisplayName"`
 }
