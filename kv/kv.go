@@ -37,6 +37,14 @@ func trigger() {
 	})
 }
 
+// Kver provide key/value operates
+type Kver interface {
+	Has(key []byte) (ok bool, err error)
+	Get(key []byte) (value []byte, err error)
+	Put(key []byte, value []byte) (err error)
+	Delete(key []byte) (err error)
+}
+
 // Context of kv client
 type Context struct {
 	name string
