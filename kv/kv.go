@@ -45,6 +45,7 @@ func trigger() {
 
 // Kver provide key/value operates
 type Kver interface {
+	Name() (name string)
 	Has(key []byte) (ok bool, err error)
 	Get(key []byte) (value []byte, err error)
 	Put(key []byte, value []byte) (err error)
@@ -80,6 +81,11 @@ func NewContext(name string) *Context {
 	c := &Context{name: name, db: db}
 	dbMap.Store(name, c)
 	return c
+}
+
+// Name return name of context
+func (c *Context) Name() string {
+	return "kv/" + c.name
 }
 
 // Has is used to check the existence of a key

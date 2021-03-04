@@ -45,6 +45,11 @@ func NewContext(name string) *Context {
 	return &Context{name: name, client: cli}
 }
 
+// Name return name of context
+func (c *Context) Name() string {
+	return "s3kv/" + c.name
+}
+
 // Has is used to check the existence of a key
 func Has(key []byte) (bool, error) {
 	trigger()
