@@ -3,6 +3,7 @@ package base
 
 import (
 	"context"
+	"net"
 	"os"
 	"os/exec"
 	"path"
@@ -113,6 +114,16 @@ func GetBuildTime() string {
 // GetBuildDir return directory at building
 func GetBuildDir() string {
 	return buildDir
+}
+
+// GetIP return outer IP of host
+func GetIP() net.IP {
+	conn, err := net.Dial("udp", "1.1.1.1:53")
+	if err != nil {
+		return nil
+	}
+	defer conn.Close()
+	return conn.LocalAddr().(*net.UDPAddr).IP
 }
 
 // GetPath return the absolute path relative to the binary file by input
